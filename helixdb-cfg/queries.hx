@@ -37,3 +37,14 @@ QUERY getFollowing(user_id: ID) =>
 QUERY getUserPosts(user_id: ID) =>
     posts <- N<User>(user_id)::Out<Created>
     RETURN posts
+
+QUERY createPostEmbedding(post_id: ID, vector: [F64], content: String) =>
+    post <- N<Post>(post_id)
+    embedding_node <- AddV<Post_Embedding>(vector, {content: content})
+    AddE<Post_to_Post_Embedding>::From(post)::To(embedding_node)
+    RETURN embedding_node
+
+QUERY searchPostEmbeddings(vector: [F64], k: I64) =>
+    embeddings <- SearchV<Post_Embedding>(vector, k)
+    posts <- embeddings::In<Post_to_Post_Embedding>
+    RETURN posts

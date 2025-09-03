@@ -6,6 +6,4 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "helix-py>=0.2.27",
-    "ipykernel>=6.30.1",
-    "ipywidgets>=8.1.7",
 ]
