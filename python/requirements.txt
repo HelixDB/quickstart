@@ -1,0 +1,2 @@
+helix-py>=0.2.27
+ipykernel>=6.30.1
