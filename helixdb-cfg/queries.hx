@@ -27,11 +27,11 @@ QUERY getPostsByUser(user_id: ID) =>
     RETURN posts
 
 QUERY getFollowers(user_id: ID) =>
-    followers <- N<User>(user_id)::Out<Follows>
+    followers <- N<User>(user_id)::In<Follows>
     RETURN followers
 
 QUERY getFollowing(user_id: ID) =>
-    following <- N<User>(user_id)::In<Follows>
+    following <- N<User>(user_id)::Out<Follows>
     RETURN following
 
 QUERY getUserPosts(user_id: ID) =>

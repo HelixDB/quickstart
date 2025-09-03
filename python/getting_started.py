@@ -2,6 +2,7 @@ from pprint import pprint
 
 from helix.client import Client
 
+# connect to client
 client = Client(local=True, port=6969)
 
 # creating 3 users
