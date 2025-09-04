@@ -189,7 +189,7 @@ func getPostsByUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func getFollowersHandler(w http.ResponseWriter, r *http.Request) {
@@ -211,7 +211,7 @@ func getFollowersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func getFollowingHandler(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +233,7 @@ func getFollowingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func searchPostEmbeddingsHandler(w http.ResponseWriter, r *http.Request) {
@@ -255,7 +255,7 @@ func searchPostEmbeddingsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
