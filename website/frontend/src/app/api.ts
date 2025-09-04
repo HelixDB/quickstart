@@ -99,17 +99,6 @@ export async function getFollowing(data: { user_id: string }) {
     return response.json()
 }
 
-export async function getUserPosts(data: { user_id: string }) {
-    const response = await fetch(`${BACKEND_URL}/getUserPosts`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    return response.json()
-}
-
 export async function searchPostEmbeddings(data: { vector: number[], k: number }) {
     const response = await fetch(`${BACKEND_URL}/searchPostEmbeddings`, {
         method: 'POST',

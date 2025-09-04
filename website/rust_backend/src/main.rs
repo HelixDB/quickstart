@@ -67,12 +67,6 @@ async fn main() {
         .and(with_client(client.clone()))
         .and_then(get_following_handler);
 
-    let get_user_posts = warp::path("getUserPosts")
-        .and(warp::post())
-        .and(warp::body::json())
-        .and(with_client(client.clone()))
-        .and_then(get_user_posts_handler);
-
     let search_post_embeddings = warp::path("searchPostEmbeddings")
         .and(warp::post())
         .and(warp::body::json())
@@ -220,20 +214,6 @@ async fn get_following_handler(data: HashMap<String, Value>, client: Arc<HelixDB
         Ok(response) => {
             let response_value: Value = response;
             Ok(warp::reply::json(&response_value))
-        }
-        Err(err) => {
-            let error_response = serde_json::json!({"error": err.to_string()});
-            Ok(warp::reply::json(&error_response))
-        }
-    }
-}
-
-async fn get_user_posts_handler(data: HashMap<String, Value>, client: Arc<HelixDB>) -> Result<impl Reply, Infallible> {
-    match client.query("getUserPosts", &data).await {
-        Ok(response) => {
-            let response_value: Value = response;
-                let wrapped_response = vec![response_value];
-            Ok(warp::reply::json(&wrapped_response))
         }
         Err(err) => {
             let error_response = serde_json::json!({"error": err.to_string()});

@@ -61,12 +61,6 @@ async def get_following(request: Request):
     response = client.query("getFollowing", data)
     return response
 
-@app.post("/getUserPosts")
-async def get_user_posts(request: Request):
-    data = await request.json()
-    response = client.query("getUserPosts", data)
-    return response
-
 @app.post("/searchPostEmbeddings")
 async def search_post_embeddings(request: Request):
     data = await request.json()

@@ -42,10 +42,6 @@ export async function getFollowing(user_id: string) {
     return await client.query("getFollowing", { "user_id": user_id });
 }
 
-export async function getUserPosts(user_id: string) {
-    return await client.query("getUserPosts", { "user_id": user_id });
-}
-
 export async function searchPostEmbeddings(vector: number[], k: number) {
     return await client.query("searchPostEmbeddings", { "vector": vector, "k": k });
 }

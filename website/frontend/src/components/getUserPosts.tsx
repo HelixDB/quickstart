@@ -42,8 +42,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { getUsers, getUserPosts } from "@/app/api";
-import { getUsers as getUsersTS, getUserPosts as getUserPostsTS } from "@/app/ts-sdk";
+import { getUsers, getPostsByUser } from "@/app/api";
+import { getUsers as getUsersTS, getPostsByUser as getPostsByUserTS } from "@/app/ts-sdk";
 import { Backend } from "@/app/page";
 
 interface Post {
@@ -114,11 +114,11 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
             setPostsLoading(true);
             let result;
             if (backend === Backend.API) {
-                result = await getUserPosts({ user_id: userId });
+                result = await getPostsByUser({ user_id: userId });
                 result = result[0]?.posts;
             }
             else {
-                result = await getUserPostsTS(userId);
+                result = await getPostsByUserTS(userId);
                 result = result.posts;
             }
             setPosts(result || []);

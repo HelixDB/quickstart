@@ -28,7 +28,6 @@ func main() {
 	http.HandleFunc("/getPostsByUser", getPostsByUserHandler)
 	http.HandleFunc("/getFollowers", getFollowersHandler)
 	http.HandleFunc("/getFollowing", getFollowingHandler)
-	http.HandleFunc("/getUserPosts", getUserPostsHandler)
 	http.HandleFunc("/searchPostEmbeddings", searchPostEmbeddingsHandler)
 	http.HandleFunc("/health", healthHandler)
 
@@ -235,28 +234,6 @@ func getFollowingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSONResponse(w, response)
-}
-
-func getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	data, err := parseJSONBody(r)
-	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	var response map[string]any
-	err = HelixClient.Query("getUserPosts", helix.WithData(data)).Scan(&response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	sendJSONResponse(w, []map[string]any{response})
 }
 
 func searchPostEmbeddingsHandler(w http.ResponseWriter, r *http.Request) {

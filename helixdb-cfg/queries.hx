@@ -34,10 +34,6 @@ QUERY getFollowing(user_id: ID) =>
     following <- N<User>(user_id)::Out<Follows>
     RETURN following
 
-QUERY getUserPosts(user_id: ID) =>
-    posts <- N<User>(user_id)::Out<Created>
-    RETURN posts
-
 QUERY createPostEmbedding(post_id: ID, vector: [F64], content: String) =>
     post <- N<Post>(post_id)
     embedding_node <- AddV<Post_Embedding>(vector, {content: content})
