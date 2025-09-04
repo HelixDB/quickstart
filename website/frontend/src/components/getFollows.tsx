@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { User, ChevronDown, Copy, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
@@ -26,14 +27,6 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import {
     Select,
     SelectContent,
     SelectGroup,
@@ -42,16 +35,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { getUsers, getUserPosts } from "@/app/api";
-import { getUsers as getUsersTS, getUserPosts as getUserPostsTS } from "@/app/ts-sdk";
+import { getFollowers, getFollowing, getUsers } from "@/app/api";
+import { getFollowers as getFollowersTS, getFollowing as getFollowingTS, getUsers as getUsersTS } from "@/app/ts-sdk";
 import { Backend } from "@/app/page";
-
-interface Post {
-    id: string;
-    content: string;
-    created_at: string;
-    updated_at: string;
-}
 
 interface User {
     id: string;
@@ -62,21 +48,19 @@ interface User {
     updated_at: string;
 }
 
-interface UserPostsResponse {
-    user: User;
-    posts: Post[];
-}
-
-export default function GetUserPosts({ backend }: { backend: Backend }) {
+export default function GetFollows({ backend }: { backend: Backend }) {
     const [users, setUsers] = useState<User[]>([]);
-    const [posts, setPosts] = useState<Post[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<string>("");
+    const [followers, setFollowers] = useState<User[]>([]);
+    const [following, setFollowing] = useState<User[]>([]);
+    const [currBackend, setCurrBackend] = useState<Backend>(backend);
     const [loading, setLoading] = useState(true);
-    const [postsLoading, setPostsLoading] = useState(false);
+    const [followersLoading, setFollowersLoading] = useState(false);
+    const [followingLoading, setFollowingLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
-    const [currBackend, setCurrBackend] = useState<Backend>(backend);
+    const [showFollowing, setShowFollowing] = useState(false); // false = followers, true = following
 
     // Fetch users on component mount
     const fetchUsers = async () => {
@@ -103,38 +87,77 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         fetchUsers();
     }, []);
 
-    // Fetch posts for selected user
-    const fetchUserPosts = async (userId: string) => {
+    const fetchFollowers = async (userId: string) => {
         if (!userId) {
-            setPosts([]);
+            setFollowers([]);
             return;
         }
 
         try {
-            setPostsLoading(true);
+            setFollowersLoading(true);
             let result;
             if (backend === Backend.API) {
-                result = await getUserPosts({ user_id: userId });
-                result = result[0]?.posts;
+                result = await getFollowers({ user_id: userId });
+                result = result[0]?.followers;
             }
             else {
-                result = await getUserPostsTS(userId);
-                result = result.posts;
+                result = await getFollowersTS(userId);
+                result = result.followers;
             }
-            setPosts(result || []);
-            setCurrentPage(1); // Reset to first page when new data loads
+            
+            // Ensure we have a clean array and deduplicate by ID
+            const cleanFollowers = (result || []).filter((user: User, index: number, self: User[]) => 
+                index === self.findIndex((u: User) => u.id === user.id)
+            );
+            
+            console.log('Setting followers to:', cleanFollowers.map((f: User) => f.name));
+            setFollowers(cleanFollowers);
         } catch (error) {
-            console.error("Error fetching user posts:", error);
-            setPosts([]);
+            console.error("Error fetching followers:", error);
+            setFollowers([]);
         } finally {
-            setPostsLoading(false);
+            setFollowersLoading(false);
+        }
+    };
+
+    const fetchFollowing = async (userId: string) => {
+        if (!userId) {
+            setFollowing([]);
+            return;
+        }
+
+        try {
+            setFollowingLoading(true);
+            let result;
+            if (backend === Backend.API) {
+                result = await getFollowing({ user_id: userId });
+                result = result[0]?.following;
+            }
+            else {
+                result = await getFollowingTS(userId);
+                result = result.following;
+            }
+            
+            // Ensure we have a clean array and deduplicate by ID
+            const cleanFollowing = (result || []).filter((user: User, index: number, self: User[]) => 
+                index === self.findIndex((u: User) => u.id === user.id)
+            );
+            
+            console.log('Setting following to:', cleanFollowing.map((f: User) => f.name));
+            setFollowing(cleanFollowing);
+        } catch (error) {
+            console.error("Error fetching following:", error);
+            setFollowing([]);
+        } finally {
+            setFollowingLoading(false);
         }
     };
 
     useEffect(() => {
         if (currBackend !== backend) {
             setCurrBackend(backend);
-            fetchUserPosts(selectedUserId);
+            fetchFollowers(selectedUserId);
+            fetchFollowing(selectedUserId);
             fetchUsers();
         }
     }, [backend]);
@@ -142,21 +165,41 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
     // Handle user selection change
     const handleUserChange = (userId: string) => {
         setSelectedUserId(userId);
-        fetchUserPosts(userId);
+        setCurrentPage(1);
+        setFollowers([]);
+        setFollowing([]);
+        fetchFollowers(userId);
+        fetchFollowing(userId);
     };
 
+    // Handle toggle change between followers and following
+    const handleToggleChange = (checked: boolean) => {
+        console.log('Toggle changing from', showFollowing, 'to', checked);
+        setShowFollowing(checked);
+        setCurrentPage(1);
+    };
+
+    // Determine which data to show based on toggle
+    const currentData = showFollowing ? (following || []) : (followers || []);
+    const isCurrentLoading = showFollowing ? followingLoading : followersLoading;
+    
+    // Debug logging (reduced frequency)
+    if (currentData.length > 0) {
+        console.log(`Showing ${showFollowing ? 'following' : 'followers'}: ${currentData.length} users`);
+    }
+
     // Calculate pagination
-    const totalPages = Math.ceil(posts.length / rowsPerPage);
+    const totalPages = Math.ceil(currentData.length / rowsPerPage);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const currentPosts = posts.slice(startIndex, endIndex);
+    const displayedUsers = currentData.slice(startIndex, endIndex);
 
     // Reset to page 1 when rows per page changes
     useEffect(() => {
         setCurrentPage(1);
     }, [rowsPerPage]);
 
-    // Utility functions from getPosts
+    // Utility functions from getUsers
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(undefined, {
             year: 'numeric',
@@ -170,11 +213,6 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
     const formatId = (id: string) => {
         const parts = id.split('-');
         return "...-" + parts.slice(1, -1).join('-') + "-...";
-    };
-
-    const truncateContent = (content: string) => {
-        if (content.length <= 25) return content;
-        return content.substring(0, 25) + "...";
     };
 
     const copyButton = (data: any, id: string) => {
@@ -205,6 +243,23 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
             setCurrentPage(page);
         }
     };
+
+    // Helper functions for user selection
+    const getSelectedUserName = () => {
+        const user = users.find(u => u.id === selectedUserId);
+        return user?.name || '';
+    };
+
+    const groupedUsers = users.reduce((groups, user) => {
+        const firstLetter = user.name.charAt(0).toUpperCase();
+        if (!groups[firstLetter]) {
+            groups[firstLetter] = [];
+        }
+        groups[firstLetter].push(user);
+        return groups;
+    }, {} as Record<string, User[]>);
+
+    const sortedGroups = Object.keys(groupedUsers).sort();
 
     const renderPaginationItems = () => {
         const items = [];
@@ -279,23 +334,6 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         return items;
     };
 
-    // Add helper functions for user selection
-    const getSelectedUserName = () => {
-        const user = users.find(u => u.id === selectedUserId);
-        return user?.name || '';
-    };
-
-    const groupedUsers = users.reduce((groups, user) => {
-        const firstLetter = user.name.charAt(0).toUpperCase();
-        if (!groups[firstLetter]) {
-            groups[firstLetter] = [];
-        }
-        groups[firstLetter].push(user);
-        return groups;
-    }, {} as Record<string, User[]>);
-
-    const sortedGroups = Object.keys(groupedUsers).sort();
-
     // Keyboard navigation for pagination
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -319,7 +357,23 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">User Posts</h2>
+                <h2 className="text-2xl font-semibold">User Follows</h2>
+                
+                {/* Followers/Following Toggle Switch */}
+                {selectedUserId && (
+                    <div className="flex items-center space-x-2">
+                        <span className={`text-sm font-medium ${!showFollowing ? 'text-foreground' : 'text-gray-500'}`}>
+                            Followers
+                        </span>
+                        <Switch
+                            checked={showFollowing}
+                            onCheckedChange={handleToggleChange}
+                        />
+                        <span className={`text-sm font-medium ${showFollowing ? 'text-foreground' : 'text-gray-500'}`}>
+                            Following
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* User Selection */}
@@ -334,7 +388,7 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
                 ) : (
                     <Select value={selectedUserId} onValueChange={handleUserChange}>
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Choose a user to view their posts">
+                            <SelectValue placeholder="Choose a user to view their followers/following">
                                 {selectedUserId && (
                                     <div className="flex items-center gap-2">
                                         <User className="h-4 w-4" />
@@ -369,11 +423,13 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
                 )}
             </div>
 
-            {/* Posts Section */}
+            {/* Followers/Following Table Section */}
             {selectedUserId && (
                 <>
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium">Posts by {getSelectedUserName()}</h3>
+                        <h3 className="text-lg font-medium">
+                            {showFollowing ? `Following by ${getSelectedUserName()}` : `Followers of ${getSelectedUserName()}`}
+                        </h3>
                         
                         {/* Rows per page selector */}
                         <div className="flex items-center gap-2">
@@ -400,9 +456,9 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
                         </div>
                     </div>
 
-                    {postsLoading ? (
+                    {isCurrentLoading ? (
                         <div className="flex justify-center items-center py-8">
-                            <div className="text-gray-500">Loading posts...</div>
+                            <div className="text-gray-500">Loading {showFollowing ? 'following' : 'followers'}...</div>
                         </div>
                     ) : (
                         <>
@@ -413,50 +469,29 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
                                         <TableHeader className="sticky top-0 dark:bg-gray-900 z-10">
                                             <TableRow>
                                                 <TableHead className="w-fit font-semi-bold">ID</TableHead>
-                                                <TableHead className="min-w-[200px] font-semi-bold">Content</TableHead>
+                                                <TableHead className="min-w-[60px] font-semi-bold">Name</TableHead>
+                                                <TableHead className="min-w-[40px] font-semi-bold">Age</TableHead>
+                                                <TableHead className="min-w-[100px] font-semi-bold">Email</TableHead>
                                                 <TableHead className="font-semi-bold">Created At</TableHead>
                                                 <TableHead className="font-semi-bold">Updated At</TableHead>
-                                                <TableHead className="font-semi-bold">View Full</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {currentPosts.length === 0 ? (
+                                            {displayedUsers.length === 0 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                                        No posts found for this user.
+                                                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                                        No {showFollowing ? 'following' : 'followers'} found for this user.
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                currentPosts.map((post) => (
-                                                    <TableRow key={post.id}>
-                                                        <TableCell className="font-mono text-sm">{formatId(post.id)} {copyButton(post.id, post.id)}</TableCell>
-                                                        <TableCell className="font-sm">{truncateContent(post.content)}</TableCell>
-                                                        <TableCell className="font-sm">{formatDate(post.created_at)}</TableCell>
-                                                        <TableCell className="font-sm">{formatDate(post.updated_at)}</TableCell>
-                                                        <TableCell className="font-sm">
-                                                            <Dialog>
-                                                                <DialogTrigger asChild>
-                                                                    <button className="px-3 py-1 text-sm bg-foreground/80 hover:bg-foreground/60 text-white rounded-md transition-colors">
-                                                                        View
-                                                                    </button>
-                                                                </DialogTrigger>
-                                                                <DialogContent className="max-w-2xl">
-                                                                    <DialogHeader>
-                                                                        <DialogTitle>Post Content</DialogTitle>
-                                                                        <DialogDescription>
-                                                                            Created: {formatDate(post.created_at)} | Updated: {formatDate(post.updated_at)}
-                                                                        </DialogDescription>
-                                                                    </DialogHeader>
-                                                                    <div className="mt-4">
-                                                                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-96 overflow-y-auto">
-                                                                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                                                                                {post.content}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </DialogContent>
-                                                            </Dialog>
-                                                        </TableCell>
+                                                displayedUsers.map((user, index) => (
+                                                    <TableRow key={`${user.id}-${index}`}>
+                                                        <TableCell className="font-mono text-sm">{formatId(user.id)} {copyButton(user.id, `${user.id}-${index}`)}</TableCell>
+                                                        <TableCell className="font-sm">{user.name}</TableCell>
+                                                        <TableCell className="font-sm">{user.age}</TableCell>
+                                                        <TableCell className="font-sm">{user.email}</TableCell>
+                                                        <TableCell className="font-sm">{formatDate(user.created_at)}</TableCell>
+                                                        <TableCell className="font-sm">{formatDate(user.updated_at)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             )}
@@ -466,10 +501,10 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
                             </div>
 
                             {/* Pagination */}
-                            {posts.length > 0 && (
+                            {currentData.length > 0 && (
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                                        Showing {Math.min(endIndex, posts.length)} of {posts.length} posts
+                                        Showing {Math.min(endIndex, currentData.length)} of {currentData.length} {showFollowing ? 'following' : 'followers'}
                                     </div>
                                     
                                     {totalPages > 1 && (
