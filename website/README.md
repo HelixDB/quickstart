@@ -16,9 +16,12 @@ npm run dev
 
 ## Running the backend
 
+To run the backend, you can go into the backend directory of your choice and run the following command:
+
 ### Go
+
 ```bash
-go run go_backend/main.go
+go run main.go
 ```
 
 ### Python
@@ -27,7 +30,7 @@ go run go_backend/main.go
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python app.py
+python main.py
 ```
 
 ### Rust
