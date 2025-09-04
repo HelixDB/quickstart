@@ -26,6 +26,8 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getUsers } from "@/app/api";
+import { getUsers as getUsersTS } from "@/app/ts-sdk";
+import { Backend } from "@/app/page";
 
 interface User {
     id: string;
@@ -36,29 +38,45 @@ interface User {
     updated_at: string;
 }
 
-export default function GetUsers() {
+export default function GetUsers({ backend }: { backend: Backend }) {
     const [users, setUsers] = useState<User[]>([]);
+    const [currBackend, setCurrBackend] = useState<Backend>(backend);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true);
-                const result = await getUsers();
-                setUsers(result[0]?.users || []);
-                console.log("Users fetched:", users.length);
-            } catch (error) {
-                console.error("Error fetching users:", error);
-            } finally {
-                setLoading(false);
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            let result;
+            if (backend === Backend.API) {
+                result = await getUsers();
+                result = result[0]?.users;
             }
-        };
-
+            else {
+                result = await getUsersTS();
+                result = result.users;
+            }
+            setUsers(result || []);
+            console.log("Users fetched:", result.length);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    useEffect(() => {
         fetchUsers();
     }, []);
+
+    useEffect(() => {
+        if (currBackend !== backend) {
+            setCurrBackend(backend);
+            fetchUsers();
+        }
+    }, [backend]);
 
     // Calculate pagination
     const totalPages = Math.ceil(users.length / rowsPerPage);
@@ -209,7 +227,7 @@ export default function GetUsers() {
     }, [currentPage, totalPages]);
 
     return (
-        <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
+        <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Users</h2>
                 
@@ -245,7 +263,7 @@ export default function GetUsers() {
             ) : (
                 <>
                     {/* Table Container with Scrolling */}
-                    <div className="max-h-[49vh] overflow-y-auto">
+                    <div className="max-h-[48vh] overflow-y-auto">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader className="sticky top-0 dark:bg-gray-900 z-10">

@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2Icon, MoreHorizontal, Search, CircleX, CircleMinus, CircleAlert, ChevronDown } from "lucide-react";
+import { MoreHorizontal, Search, CircleX, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert";
+import { SuccessComponent, SuccessAlert } from "@/components/success";
 import {
     Table,
     TableBody,
@@ -33,6 +29,8 @@ import {
 } from "@/components/ui/pagination";
 
 import { getUsers, createFollow } from "@/app/api";
+import { getUsers as getUsersTS, createFollow as createFollowTS } from "@/app/ts-sdk";
+import { Backend } from "@/app/page";
 
 interface User {
     id: string;
@@ -43,23 +41,19 @@ interface User {
     updated_at: string;
 }
 
-export default function InsertFollow() {
+export default function InsertFollow({ backend }: { backend: Backend }) {
     const [users, setUsers] = useState<User[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [nameFilter, setNameFilter] = useState("");
     const [loading, setLoading] = useState(true);
+    const [currBackend, setCurrBackend] = useState<Backend>(backend);
     const [selectedFollowed, setSelectedFollowed] = useState<User | null>(null);
     const [selectedFollower, setSelectedFollower] = useState<User | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     
     // Alert state for showing submission results
-    const [alert, setAlert] = useState<{
-        show: boolean;
-        type: 'success' | 'error';
-        title: string;
-        message: string;
-    }>({
+    const [alert, setAlert] = useState<SuccessAlert>({
         show: false,
         type: 'success',
         title: '',
@@ -67,29 +61,43 @@ export default function InsertFollow() {
     });
 
     // Fetch users on component mount
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true);
-                const result = await getUsers();
-                const usersData = result[0]?.users || [];
-                setUsers(usersData);
-                setFilteredUsers(usersData);
-            } catch (error) {
-                console.error("Error fetching users:", error);
-                setAlert({
-                    show: true,
-                    type: 'error',
-                    title: 'Error Loading Users',
-                    message: 'Failed to load users from the server.'
-                });
-            } finally {
-                setLoading(false);
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            let result;
+            if (backend === Backend.API) {
+                result = await getUsers();
+                result = result[0]?.users;
             }
-        };
-
+            else {
+                result = await getUsersTS();
+                result = result.users;
+            }
+            const usersData = result || [];
+            setUsers(usersData);
+            setFilteredUsers(usersData);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            setAlert({
+                show: true,
+                type: 'error',
+                title: 'Error Loading Users',
+                message: 'Failed to load users from the server.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
         fetchUsers();
     }, []);
+
+    useEffect(() => {
+        if (currBackend !== backend) {
+            setCurrBackend(backend);
+            fetchUsers();
+        }
+    }, [backend]);
 
     // Filter users by name
     useEffect(() => {
@@ -118,7 +126,7 @@ export default function InsertFollow() {
     useEffect(() => {
         if (alert.show) {
             const timer = setTimeout(() => {
-                setAlert(prev => ({ ...prev, show: false }));
+                setAlert({ ...alert, show: false });
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -168,7 +176,14 @@ export default function InsertFollow() {
         }
 
         try {
-            const result = await createFollow({ follower_id: selectedFollower?.id, followed_id: selectedFollowed?.id });
+            let result;
+            if (backend === Backend.API) {
+                result = await createFollow({ follower_id: selectedFollower?.id, followed_id: selectedFollowed?.id });
+                result = result[0];
+            }
+            else {
+                result = await createFollowTS(selectedFollower?.id, selectedFollowed?.id);
+            }
 
             console.log("Follow relationship created:", result);
 
@@ -176,7 +191,7 @@ export default function InsertFollow() {
                 show: true,
                 type: 'success',
                 title: 'Follow Relationship Created',
-                message: `${selectedFollower?.name} follows ${selectedFollowed?.name}`
+                message: `${selectedFollower?.name} is now following ${selectedFollowed?.name}`
             });
 
             // Clear selected relations after successful creation
@@ -314,31 +329,11 @@ export default function InsertFollow() {
         <>
             {/* Alert - Fixed Overlay */}
             {alert.show && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-                    <Alert className={`${alert.type === 'success' ? 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800' : 'border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800'} shadow-lg`}>
-                        {alert.type === 'success' ? (
-                            <CheckCircle2Icon className={`h-4 w-4 text-green-600 dark:text-green-400`} />
-                        ) : (
-                            <CircleAlert className={`h-4 w-4 text-red-600 dark:text-red-400`} />
-                        )}
-                        <AlertTitle className={alert.type === 'success' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
-                            {alert.title}
-                        </AlertTitle>
-                        <AlertDescription className={alert.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                            {alert.message}
-                        </AlertDescription>
-                        <button
-                            onClick={() => setAlert(prev => ({ ...prev, show: false }))}
-                            className={`mt-2 text-xs underline ${alert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`}
-                        >
-                            <CircleMinus className={`cursor-pointer h-4 w-4 ${alert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`} />
-                        </button>
-                    </Alert>
-                </div>
+                <SuccessComponent alert={alert} setAlert={setAlert} />
             )}
 
             {/* Insert Follow Section */}
-            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
+            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-semibold">Insert Follow Relationships</h2>
 

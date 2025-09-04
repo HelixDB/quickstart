@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2Icon, CircleAlert, CircleMinus, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
@@ -12,13 +12,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert";
+import { SuccessComponent, SuccessAlert } from "@/components/success";
 
 import { getUsers, createPost, createPostEmbedding } from "@/app/api";
+import { getUsers as getUsersTS, createPost as createPostTS, createPostEmbedding as createPostEmbeddingTS } from "@/app/ts-sdk";
+import { Backend } from "@/app/page";
 
 interface User {
     id: string;
@@ -29,7 +27,7 @@ interface User {
     updated_at: string;
 }
 
-export default function InsertPost() {
+export default function InsertPost({ backend }: { backend: Backend }) {
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<string>("");
     const [postContent, setPostContent] = useState("");
@@ -37,12 +35,7 @@ export default function InsertPost() {
     const [loading, setLoading] = useState(true);
     
     // Alert state for showing submission results
-    const [alert, setAlert] = useState<{
-        show: boolean;
-        type: 'success' | 'error';
-        title: string;
-        message: string;
-    }>({
+    const [alert, setAlert] = useState<SuccessAlert>({
         show: false,
         type: 'success',
         title: '',
@@ -54,8 +47,16 @@ export default function InsertPost() {
         const fetchUsers = async () => {
             try {
                 setLoading(true);
-                const result = await getUsers();
-                const usersData = result[0]?.users || [];
+                let result;
+                if (backend === Backend.API) {
+                    result = await getUsers();
+                    result = result[0]?.users;
+                }
+                else {
+                    result = await getUsersTS();
+                    result = result.users;
+                }
+                const usersData = result || [];
                 setUsers(usersData);
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -77,7 +78,7 @@ export default function InsertPost() {
     useEffect(() => {
         if (alert.show) {
             const timer = setTimeout(() => {
-                setAlert(prev => ({ ...prev, show: false }));
+                setAlert({ ...alert, show: false });
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -110,31 +111,42 @@ export default function InsertPost() {
 
         try {
             const selectedUser = users.find(user => user.id === selectedUserId);
-            const postResult = await createPost({ 
-                user_id: selectedUserId, 
-                content: postContent.trim() 
-            });
+            let postResult;
+            if (backend === Backend.API) {
+                postResult = await createPost({ user_id: selectedUserId, content: postContent.trim() });
+                postResult = postResult[0]?.post;
+            }
+            else {
+                postResult = await createPostTS(selectedUserId, postContent.trim());
+                postResult = postResult.post;
+            }
 
-            console.log("Post created:", postResult);
+            console.log("Post created:", postResult.content.substring(0, 50));
 
             // Create embedding
-            const postId = postResult[0]?.post?.id || postResult.post?.id;
+            const postId = postResult?.id;
             if (postId) {
-                const embeddingResult = await createPostEmbedding({
+                let embeddingResult;
+                if (backend === Backend.API) {
+                    embeddingResult = await createPostEmbedding({
                     post_id: postId,
                     vector: postVector,
                     content: postContent.trim()
-                });
-                console.log("Embedding created:", embeddingResult);
+                    });
+                    embeddingResult = embeddingResult[0]?.embedding;
+                }
+                else {
+                    embeddingResult = await createPostEmbeddingTS(postId, postVector, postContent.trim());
+                    embeddingResult = embeddingResult.embedding;
+                }
+                console.log("Embedding created:", embeddingResult.slice(0, 5));
             }
-
-            let successMessage = `Post by ${selectedUser?.name} has been created successfully with embedding.`;
 
             setAlert({
                 show: true,
                 type: 'success',
                 title: 'Post Created',
-                message: successMessage
+                message: `Post by ${selectedUser?.name} has been created successfully with embedding.`
             });
 
             // Reset form after successful submission
@@ -179,27 +191,7 @@ export default function InsertPost() {
         <>
             {/* Alert - Fixed Overlay */}
             {alert.show && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-                    <Alert className={`${alert.type === 'success' ? 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800' : 'border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800'} shadow-lg`}>
-                        {alert.type === 'success' ? (
-                            <CheckCircle2Icon className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        ) : (
-                            <CircleAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        )}
-                        <AlertTitle className={alert.type === 'success' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
-                            {alert.title}
-                        </AlertTitle>
-                        <AlertDescription className={alert.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                            {alert.message}
-                        </AlertDescription>
-                        <button
-                            onClick={() => setAlert(prev => ({ ...prev, show: false }))}
-                            className={`mt-2 text-xs underline ${alert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`}
-                        >
-                            <CircleMinus className={`cursor-pointer h-4 w-4 ${alert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`} />
-                        </button>
-                    </Alert>
-                </div>
+                <SuccessComponent alert={alert} setAlert={setAlert} />
             )}
 
             {/* Insert Post Section */}

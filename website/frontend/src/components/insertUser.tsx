@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2Icon, CircleMinus, CircleAlert } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert"
+import { SuccessComponent, SuccessAlert } from "@/components/success";
 
 import { createUser } from "@/app/api";
+import { createUser as createUserTS } from "@/app/ts-sdk";
+import { Backend } from "@/app/page";
 
-export default function InsertUser() {
+export default function InsertUser({ backend }: { backend: Backend }) {
     // Insert user form state
     const [insertUserForm, setInsertUserForm] = useState({
         name: "",
@@ -20,12 +17,7 @@ export default function InsertUser() {
     });
 
     // Insert user alert state for showing submission results
-    const [insertUserAlert, setInsertUserAlert] = useState<{
-        show: boolean;
-        type: 'success' | 'error';
-        title: string;
-        message: string;
-    }>({
+    const [insertUserAlert, setInsertUserAlert] = useState<SuccessAlert>({
         show: false,
         type: 'success',
         title: '',
@@ -39,11 +31,16 @@ export default function InsertUser() {
         }));
     };
 
+    const formatId = (id: string) => {
+        const parts = id.split('-');
+        return "...-" + parts.slice(1, -1).join('-') + "-...";
+    };
+
     // Auto-dismiss alert after 5 seconds
     useEffect(() => {
         if (insertUserAlert.show) {
             const timer = setTimeout(() => {
-                setInsertUserAlert(prev => ({ ...prev, show: false }));
+                setInsertUserAlert({ ...insertUserAlert, show: false });
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -58,7 +55,16 @@ export default function InsertUser() {
                 email: insertUserForm.email
             };
             try {
-                const result = await createUser(userData);
+                let result;
+                if (backend === Backend.API) {
+                    result = await createUser(userData);
+                    result = result[0]?.user;
+                }
+                else {
+                    result = await createUserTS(userData.name, userData.age, userData.email);
+                    result = result.user;
+                }
+
                 console.log("User created:", result);
                 
                 // Show success alert with result
@@ -66,7 +72,7 @@ export default function InsertUser() {
                     show: true,
                     type: 'success',
                     title: 'User Created Successfully!',
-                    message: `User "${userData.name}" (ID: ${result[0]?.user?.id || 'Unknown'}) has been created successfully.`
+                    message: `User "${userData.name}" (ID: ${formatId(result?.id || 'Unknown')}) has been created successfully.`
                 });
                 
                 // Reset form after successful submission
@@ -89,31 +95,11 @@ export default function InsertUser() {
         <>
             {/* Insert User Alert - Fixed Overlay */}
             {insertUserAlert.show && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-                    <Alert className={`${insertUserAlert.type === 'success' ? 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800' : 'border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800'} shadow-lg`}>
-                        {insertUserAlert.type === 'success' ? (
-                            <CheckCircle2Icon className={`h-4 w-4 text-green-600 dark:text-green-400`} />
-                        ) : (
-                            <CircleAlert className={`h-4 w-4 text-red-600 dark:text-red-400`} />
-                        )}
-                        <AlertTitle className={insertUserAlert.type === 'success' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
-                            {insertUserAlert.title}
-                        </AlertTitle>
-                        <AlertDescription className={insertUserAlert.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                            {insertUserAlert.message}
-                        </AlertDescription>
-                        <button
-                            onClick={() => setInsertUserAlert(prev => ({ ...prev, show: false }))}
-                            className={`mt-2 text-xs underline ${insertUserAlert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`}
-                        >
-                            <CircleMinus className={`cursor-pointer h-4 w-4 ${insertUserAlert.type === 'success' ? 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200' : 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200'}`} />
-                        </button>
-                    </Alert>
-                </div>
+                <SuccessComponent alert={insertUserAlert} setAlert={setInsertUserAlert} />
             )}
 
             {/* Insert User Section */}
-            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
+            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
                 <h2 className="text-2xl font-semibold mb-4">Insert User</h2>
                 
                 <form onSubmit={handleInsertUserSubmit} className="flex flex-col gap-4 h-full">
