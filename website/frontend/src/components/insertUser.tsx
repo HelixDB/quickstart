@@ -44,7 +44,7 @@ export default function InsertUser({ backend }: { backend: Backend }) {
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [insertUserAlert.show]);
+    }, [insertUserAlert]);
 
     const handleInsertUserSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

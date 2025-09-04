@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronDown, Copy, Check } from "lucide-react";
 import {
     Table,
@@ -46,7 +46,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             let result;
@@ -65,18 +65,18 @@ export default function GetUsers({ backend }: { backend: Backend }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [backend]);
     
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     useEffect(() => {
         if (currBackend !== backend) {
             setCurrBackend(backend);
             fetchUsers();
         }
-    }, [backend]);
+    }, [backend, currBackend, fetchUsers]);
 
     // Calculate pagination
     const totalPages = Math.ceil(users.length / rowsPerPage);
@@ -104,7 +104,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
         return "...-" + parts.slice(1, -1).join('-') + "-...";
     };
 
-    const copyButton = (data: any, id: string) => {
+    const copyButton = (data: string, id: string) => {
         const isCopied = copiedIds.has(id);
         
         return (
@@ -127,17 +127,17 @@ export default function GetUsers({ backend }: { backend: Backend }) {
         );
     };
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
-    };
+    }, [totalPages]);
 
     const renderPaginationItems = () => {
         const items = [];
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
         // Adjust start page if we're near the end
         if (endPage - startPage < maxVisiblePages - 1) {
@@ -224,7 +224,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [currentPage, totalPages]);
+    }, [currentPage, totalPages, handlePageChange]);
 
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">

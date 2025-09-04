@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User, ChevronDown, Copy, Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -63,7 +63,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
     const [showFollowing, setShowFollowing] = useState(false); // false = followers, true = following
 
     // Fetch users on component mount
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             let result;
@@ -82,12 +82,13 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [backend]);
+
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
-    const fetchFollowers = async (userId: string) => {
+    const fetchFollowers = useCallback(async (userId: string) => {
         if (!userId) {
             setFollowers([]);
             return;
@@ -117,9 +118,9 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         } finally {
             setFollowersLoading(false);
         }
-    };
+    }, [backend]);
 
-    const fetchFollowing = async (userId: string) => {
+    const fetchFollowing = useCallback(async (userId: string) => {
         if (!userId) {
             setFollowing([]);
             return;
@@ -149,7 +150,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         } finally {
             setFollowingLoading(false);
         }
-    };
+    }, [backend]);
 
     useEffect(() => {
         if (currBackend !== backend) {
@@ -158,7 +159,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
             fetchFollowing(selectedUserId);
             fetchUsers();
         }
-    }, [backend]);
+    }, [backend, currBackend, selectedUserId, fetchFollowers, fetchFollowing, fetchUsers]);
 
     // Handle user selection change
     const handleUserChange = (userId: string) => {
@@ -207,7 +208,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         return "...-" + parts.slice(1, -1).join('-') + "-...";
     };
 
-    const copyButton = (data: any, id: string) => {
+    const copyButton = (data: string, id: string) => {
         const isCopied = copiedIds.has(id);
         
         return (
@@ -230,11 +231,11 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         );
     };
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
-    };
+    }, [totalPages]);
 
     // Helper functions for user selection
     const getSelectedUserName = () => {
@@ -257,7 +258,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         const items = [];
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
         // Adjust start page if we're near the end
         if (endPage - startPage < maxVisiblePages - 1) {
@@ -344,7 +345,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [currentPage, totalPages]);
+    }, [currentPage, totalPages, handlePageChange]);
 
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
@@ -420,7 +421,7 @@ export default function GetFollows({ backend }: { backend: Backend }) {
                 <>
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium">
-                            {showFollowing ? `Following by ${getSelectedUserName()}` : `Followers of ${getSelectedUserName()}`}
+                            {showFollowing ? `Followed by ${getSelectedUserName()}` : `Followers of ${getSelectedUserName()}`}
                         </h3>
                         
                         {/* Rows per page selector */}

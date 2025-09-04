@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MoreHorizontal, Search, CircleX, ChevronDown, MoveRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SuccessComponent, SuccessAlert } from "@/components/success";
@@ -61,7 +61,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
     });
 
     // Fetch users on component mount
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             let result;
@@ -87,17 +87,18 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [backend]);
+
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     useEffect(() => {
         if (currBackend !== backend) {
             setCurrBackend(backend);
             fetchUsers();
         }
-    }, [backend]);
+    }, [backend, currBackend, fetchUsers]);
 
     // Filter users by name
     useEffect(() => {
@@ -130,7 +131,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [alert.show]);
+    }, [alert]);
 
     const handleSetRelation = (user: User, type: 'following' | 'follower') => {
         if (type === 'following') {
@@ -226,17 +227,17 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
         return null;
     };
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
-    };
+    }, [totalPages]);
 
     const renderPaginationItems = () => {
         const items = [];
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
         // Adjust start page if we're near the end
         if (endPage - startPage < maxVisiblePages - 1) {
@@ -323,7 +324,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [currentPage, totalPages]);
+    }, [currentPage, totalPages, handlePageChange]);
 
     return (
         <>

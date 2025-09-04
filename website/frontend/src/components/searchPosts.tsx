@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Copy, Check } from "lucide-react";
 import { Slider } from "@/components/ui/slider"
 import {
@@ -39,7 +39,7 @@ export default function SearchPosts({ backend }: { backend: Backend }) {
     const [hasSearched, setHasSearched] = useState(false);
     const [currBackend, setCurrBackend] = useState<Backend>(backend);
     
-    const handleSearch = async () => {
+    const handleSearch = useCallback(async () => {
         try {
             setLoading(true);
             setHasSearched(true);
@@ -59,7 +59,7 @@ export default function SearchPosts({ backend }: { backend: Backend }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [backend, searchVector, kValue]);
 
     useEffect(() => {
         if (currBackend !== backend) {
@@ -70,7 +70,7 @@ export default function SearchPosts({ backend }: { backend: Backend }) {
                 handleSearch();
             }
         }
-    }, [backend]);
+    }, [backend, currBackend, handleSearch, searchVector]);
 
     const clearForm = () => {
         setSearchVector([0.0, 0.0, 0.0, 0.0, 0.0]);
@@ -99,7 +99,7 @@ export default function SearchPosts({ backend }: { backend: Backend }) {
         return content.substring(0, 25) + "...";
     };
 
-    const copyButton = (data: any, id: string) => {
+    const copyButton = (data: string, id: string) => {
         const isCopied = copiedIds.has(id);
         
         return (

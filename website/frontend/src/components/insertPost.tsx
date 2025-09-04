@@ -72,7 +72,7 @@ export default function InsertPost({ backend }: { backend: Backend }) {
         };
 
         fetchUsers();
-    }, []);
+    }, [backend]);
 
     // Auto-dismiss alert after 5 seconds
     useEffect(() => {
@@ -82,7 +82,7 @@ export default function InsertPost({ backend }: { backend: Backend }) {
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [alert.show]);
+    }, [alert]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

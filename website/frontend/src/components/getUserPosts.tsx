@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User, ChevronDown, Copy, Check } from "lucide-react";
 import {
     Table,
@@ -62,11 +62,6 @@ interface User {
     updated_at: string;
 }
 
-interface UserPostsResponse {
-    user: User;
-    posts: Post[];
-}
-
 export default function GetUserPosts({ backend }: { backend: Backend }) {
     const [users, setUsers] = useState<User[]>([]);
     const [posts, setPosts] = useState<Post[]>([]);
@@ -79,7 +74,7 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
     const [currBackend, setCurrBackend] = useState<Backend>(backend);
 
     // Fetch users on component mount
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             let result;
@@ -98,13 +93,13 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [backend]);
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     // Fetch posts for selected user
-    const fetchUserPosts = async (userId: string) => {
+    const fetchUserPosts = useCallback(async (userId: string) => {
         if (!userId) {
             setPosts([]);
             return;
@@ -129,7 +124,7 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         } finally {
             setPostsLoading(false);
         }
-    };
+    }, [backend]);
 
     useEffect(() => {
         if (currBackend !== backend) {
@@ -137,13 +132,13 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
             fetchUserPosts(selectedUserId);
             fetchUsers();
         }
-    }, [backend]);
+    }, [backend, currBackend, selectedUserId, fetchUserPosts, fetchUsers]);
 
     // Handle user selection change
-    const handleUserChange = (userId: string) => {
+    const handleUserChange = useCallback((userId: string) => {
         setSelectedUserId(userId);
         fetchUserPosts(userId);
-    };
+    }, [fetchUserPosts]);
 
     // Calculate pagination
     const totalPages = Math.ceil(posts.length / rowsPerPage);
@@ -177,7 +172,7 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         return content.substring(0, 25) + "...";
     };
 
-    const copyButton = (data: any, id: string) => {
+    const copyButton = (data: string, id: string) => {
         const isCopied = copiedIds.has(id);
         
         return (
@@ -200,17 +195,17 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         );
     };
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
-    };
+    }, [totalPages]);
 
     const renderPaginationItems = () => {
         const items = [];
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
         // Adjust start page if we're near the end
         if (endPage - startPage < maxVisiblePages - 1) {
@@ -314,7 +309,7 @@ export default function GetUserPosts({ backend }: { backend: Backend }) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [currentPage, totalPages]);
+    }, [currentPage, totalPages, handlePageChange]);
 
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">

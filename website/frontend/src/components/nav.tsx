@@ -2,13 +2,13 @@
 
 import {
     NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuIndicator,
+    // NavigationMenuContent,
+    // NavigationMenuIndicator,
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
-    NavigationMenuTrigger,
-    NavigationMenuViewport,
+    // NavigationMenuTrigger,
+    // NavigationMenuViewport,
 } from "@/components/ui/navigation-menu"
 
 export default function Nav({ currentPage, setCurrentPage }: { currentPage: string, setCurrentPage: (page: string) => void }) {
