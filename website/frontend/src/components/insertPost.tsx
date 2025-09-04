@@ -133,7 +133,7 @@ export default function InsertPost({ backend }: { backend: Backend }) {
                     vector: postVector,
                     content: postContent.trim()
                     });
-                    embeddingResult = embeddingResult[0]?.embedding;
+                    embeddingResult = embeddingResult[0]?.embedding_node?.data;
                 }
                 else {
                     embeddingResult = await createPostEmbeddingTS(postId, postVector, postContent.trim());

@@ -11,6 +11,9 @@ import (
 
 var HelixClient *helix.Client
 
+// NOTE you will see responses being wrapped in array to match frontend expectation in some handlers,
+// this is because our frontend expects an array of objects, but the backend returns a single object
+
 func main() {
 	// connect to helixdb client
 	HelixClient = helix.NewClient("http://localhost:6969")
@@ -67,7 +70,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func createFollowHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +92,7 @@ func createFollowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func createPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +114,7 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func createPostEmbeddingHandler(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +136,7 @@ func createPostEmbeddingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func getUsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -253,7 +256,7 @@ func getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, response)
+	sendJSONResponse(w, []map[string]any{response})
 }
 
 func searchPostEmbeddingsHandler(w http.ResponseWriter, r *http.Request) {
