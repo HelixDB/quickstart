@@ -10,6 +10,7 @@ import GetUsers from "@/components/getUsers";
 import GetPosts from "@/components/getPosts";
 import GetUserPosts from "@/components/getUserPosts";
 import GetFollows from "@/components/getFollows";
+import SearchPosts from "@/components/searchPosts";
 import { Switch } from "@/components/ui/switch";
 
 export enum Backend {
@@ -26,7 +27,7 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        const pages = ["insertUser", "insertFollow", "insertPost", "getUsers", "getPosts", "getUserPosts", "getFollows"];
+        const pages = ["insertUser", "insertFollow", "insertPost", "getUsers", "getPosts", "getUserPosts", "getFollows", "searchPosts"];
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && (event.key >= '1' && event.key <= pages.length.toString())) {
                 event.preventDefault();
@@ -102,6 +103,9 @@ export default function Home() {
 
                     {/* Get Follows Page */}
                     {currentPage === "getFollows" && <GetFollows backend={backend} />}
+
+                    {/* Search Posts Page */}
+                    {currentPage === "searchPosts" && <SearchPosts backend={backend} />}
                 </div>
             </main>
         </div>

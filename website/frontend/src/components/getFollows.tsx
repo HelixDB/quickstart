@@ -110,7 +110,6 @@ export default function GetFollows({ backend }: { backend: Backend }) {
                 index === self.findIndex((u: User) => u.id === user.id)
             );
             
-            console.log('Setting followers to:', cleanFollowers.map((f: User) => f.name));
             setFollowers(cleanFollowers);
         } catch (error) {
             console.error("Error fetching followers:", error);
@@ -143,7 +142,6 @@ export default function GetFollows({ backend }: { backend: Backend }) {
                 index === self.findIndex((u: User) => u.id === user.id)
             );
             
-            console.log('Setting following to:', cleanFollowing.map((f: User) => f.name));
             setFollowing(cleanFollowing);
         } catch (error) {
             console.error("Error fetching following:", error);
@@ -174,7 +172,6 @@ export default function GetFollows({ backend }: { backend: Backend }) {
 
     // Handle toggle change between followers and following
     const handleToggleChange = (checked: boolean) => {
-        console.log('Toggle changing from', showFollowing, 'to', checked);
         setShowFollowing(checked);
         setCurrentPage(1);
     };
@@ -182,11 +179,6 @@ export default function GetFollows({ backend }: { backend: Backend }) {
     // Determine which data to show based on toggle
     const currentData = showFollowing ? (following || []) : (followers || []);
     const isCurrentLoading = showFollowing ? followingLoading : followersLoading;
-    
-    // Debug logging (reduced frequency)
-    if (currentData.length > 0) {
-        console.log(`Showing ${showFollowing ? 'following' : 'followers'}: ${currentData.length} users`);
-    }
 
     // Calculate pagination
     const totalPages = Math.ceil(currentData.length / rowsPerPage);

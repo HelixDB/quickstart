@@ -25,14 +25,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-  } from "@/components/ui/dialog"
 import { getUsers } from "@/app/api";
 import { getUsers as getUsersTS } from "@/app/ts-sdk";
 import { Backend } from "@/app/page";
