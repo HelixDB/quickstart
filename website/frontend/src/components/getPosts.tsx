@@ -32,65 +32,63 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog"
-import { getUsers } from "@/app/api";
-import { getUsers as getUsersTS } from "@/app/ts-sdk";
+} from "@/components/ui/dialog";
+import { getPosts } from "@/app/api";
+import { getPosts as getPostsTS } from "@/app/ts-sdk";
 import { Backend } from "@/app/page";
 
-interface User {
+interface Post {
     id: string;
-    name: string;
-    age: number;
-    email: string;
+    content: string;
     created_at: string;
     updated_at: string;
 }
 
-export default function GetUsers({ backend }: { backend: Backend }) {
-    const [users, setUsers] = useState<User[]>([]);
+export default function GetPosts({ backend }: { backend: Backend }) {
+    const [posts, setPosts] = useState<Post[]>([]);
     const [currBackend, setCurrBackend] = useState<Backend>(backend);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
 
-    const fetchUsers = async () => {
+    const fetchPosts = async () => {
         try {
             setLoading(true);
             let result;
             if (backend === Backend.API) {
-                result = await getUsers();
-                result = result[0]?.users;
+                result = await getPosts();
+                result = result[0]?.posts;
             }
             else {
-                result = await getUsersTS();
-                result = result.users;
+                result = await getPostsTS();
+                result = result.posts;
             }
-            setUsers(result || []);
-            console.log("Users fetched:", result.length);
+            setPosts(result || []);
+            console.log("Posts fetched:", result.length);
         } catch (error) {
-            console.error("Error fetching users:", error);
+            console.error("Error fetching posts:", error);
         } finally {
             setLoading(false);
         }
     };
     
     useEffect(() => {
-        fetchUsers();
+        fetchPosts();
     }, []);
 
     useEffect(() => {
         if (currBackend !== backend) {
             setCurrBackend(backend);
-            fetchUsers();
+            fetchPosts();
         }
     }, [backend]);
 
     // Calculate pagination
-    const totalPages = Math.ceil(users.length / rowsPerPage);
+    const totalPages = Math.ceil(posts.length / rowsPerPage);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const currentUsers = users.slice(startIndex, endIndex);
+    const currentPosts = posts.slice(startIndex, endIndex);
 
     // Reset to page 1 when rows per page changes
     useEffect(() => {
@@ -110,6 +108,11 @@ export default function GetUsers({ backend }: { backend: Backend }) {
     const formatId = (id: string) => {
         const parts = id.split('-');
         return "...-" + parts.slice(1, -1).join('-') + "-...";
+    };
+
+    const truncateContent = (content: string) => {
+        if (content.length <= 25) return content;
+        return content.substring(0, 25) + "...";
     };
 
     const copyButton = (data: any, id: string) => {
@@ -215,7 +218,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
     };
 
     useEffect(() => {
-        // If .  is pressed, go to next page, if , is pressed, go to previous page
+        // If . is pressed, go to next page, if , is pressed, go to previous page
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === '.') {
                 if (currentPage < totalPages) {
@@ -237,7 +240,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Users</h2>
+                <h2 className="text-2xl font-semibold">Posts</h2>
                 
                 {/* Rows per page selector */}
                 <div className="flex items-center gap-2">
@@ -266,7 +269,7 @@ export default function GetUsers({ backend }: { backend: Backend }) {
 
             {loading ? (
                 <div className="flex justify-center items-center py-8">
-                    <div className="text-gray-500">Loading users...</div>
+                    <div className="text-gray-500">Loading posts...</div>
                 </div>
             ) : (
                 <>
@@ -277,29 +280,50 @@ export default function GetUsers({ backend }: { backend: Backend }) {
                                 <TableHeader className="sticky top-0 dark:bg-gray-900 z-10">
                                     <TableRow>
                                         <TableHead className="w-fit font-semi-bold">ID</TableHead>
-                                        <TableHead className="min-w-[60px] font-semi-bold">Name</TableHead>
-                                        <TableHead className="min-w-[40px] font-semi-bold">Age</TableHead>
-                                        <TableHead className="min-w-[100px] font-semi-bold">Email</TableHead>
+                                        <TableHead className="min-w-[200px] font-semi-bold">Content</TableHead>
                                         <TableHead className="font-semi-bold">Created At</TableHead>
                                         <TableHead className="font-semi-bold">Updated At</TableHead>
+                                        <TableHead className="font-semi-bold">View Full</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {currentUsers.length === 0 ? (
+                                    {currentPosts.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                                No users found.
+                                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                                No posts found.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        currentUsers.map((user) => (
-                                            <TableRow key={user.id}>
-                                                <TableCell className="font-mono text-sm">{formatId(user.id)} {copyButton(user.id, user.id)}</TableCell>
-                                                <TableCell className="font-sm">{user.name}</TableCell>
-                                                <TableCell className="font-sm">{user.age}</TableCell>
-                                                <TableCell className="font-sm">{user.email}</TableCell>
-                                                <TableCell className="font-sm">{formatDate(user.created_at)}</TableCell>
-                                                <TableCell className="font-sm">{formatDate(user.updated_at)}</TableCell>
+                                        currentPosts.map((post) => (
+                                            <TableRow key={post.id}>
+                                                <TableCell className="font-mono text-sm">{formatId(post.id)} {copyButton(post.id, post.id)}</TableCell>
+                                                <TableCell className="font-sm">{truncateContent(post.content)}</TableCell>
+                                                <TableCell className="font-sm">{formatDate(post.created_at)}</TableCell>
+                                                <TableCell className="font-sm">{formatDate(post.updated_at)}</TableCell>
+                                                <TableCell className="font-sm">
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <button className="px-3 py-1 text-sm bg-foreground/80 hover:bg-foreground/60 text-white rounded-md transition-colors">
+                                                                View
+                                                            </button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-2xl">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Post Content</DialogTitle>
+                                                                <DialogDescription>
+                                                                    Created: {formatDate(post.created_at)} | Updated: {formatDate(post.updated_at)}
+                                                                </DialogDescription>
+                                                            </DialogHeader>
+                                                            <div className="mt-4">
+                                                                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-96 overflow-y-auto">
+                                                                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                                                                        {post.content}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                </TableCell>
                                             </TableRow>
                                         ))
                                     )}
@@ -309,10 +333,10 @@ export default function GetUsers({ backend }: { backend: Backend }) {
                     </div>
 
                     {/* Pagination */}
-                    {users.length > 0 && (
+                    {posts.length > 0 && (
                         <div className="flex items-center justify-between mt-4">
                             <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Showing {Math.min(endIndex, users.length)} of {users.length} users
+                                Showing {Math.min(endIndex, posts.length)} of {posts.length} posts
                             </div>
                             
                             {totalPages > 1 && (

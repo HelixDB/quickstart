@@ -189,7 +189,7 @@ export default function InsertPost({ backend }: { backend: Backend }) {
 
     return (
         <>
-            {/* Alert - Fixed Overlay */}
+            {/* Alert */}
             {alert.show && (
                 <SuccessComponent alert={alert} setAlert={setAlert} />
             )}

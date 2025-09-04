@@ -7,6 +7,7 @@ import Nav from "@/components/nav";
 import InsertFollow from "@/components/insertFollow";
 import InsertPost from "@/components/insertPost";
 import GetUsers from "@/components/getUsers";
+import GetPosts from "@/components/getPosts";
 import { Switch } from "@/components/ui/switch";
 
 export enum Backend {
@@ -23,22 +24,11 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
+        const pages = ["insertUser", "insertFollow", "insertPost", "getUsers", "getPosts"];
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === '1' && (event.metaKey || event.ctrlKey)) {
+            if ((event.metaKey || event.ctrlKey) && (event.key >= '1' && event.key <= pages.length.toString())) {
                 event.preventDefault();
-                setCurrentPage("insertUser");
-            }
-            else if (event.key === '2' && (event.metaKey || event.ctrlKey)) {
-                event.preventDefault();
-                setCurrentPage("insertFollow");
-            }
-            else if (event.key === '3' && (event.metaKey || event.ctrlKey)) {
-                event.preventDefault();
-                setCurrentPage("insertPost");
-            }
-            else if (event.key === '4' && (event.metaKey || event.ctrlKey)) {
-                event.preventDefault();
-                setCurrentPage("getUsers");
+                setCurrentPage(pages[parseInt(event.key) - 1]);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -46,6 +36,19 @@ export default function Home() {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Alt') {
+                event.preventDefault();
+                setBackend(backend === Backend.API ? Backend.TS_SDK : Backend.API);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [backend]);
 
     return (
         <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center max-h-screen p-7 pb-15 sm:p-20">
@@ -88,6 +91,9 @@ export default function Home() {
 
                     {/* Get Users Page */}
                     {currentPage === "getUsers" && <GetUsers backend={backend} />}
+
+                    {/* Get Posts Page */}
+                    {currentPage === "getPosts" && <GetPosts backend={backend} />}
                 </div>
             </main>
         </div>

@@ -93,7 +93,7 @@ export default function InsertUser({ backend }: { backend: Backend }) {
 
     return (
         <>
-            {/* Insert User Alert - Fixed Overlay */}
+            {/* Alert */}
             {insertUserAlert.show && (
                 <SuccessComponent alert={insertUserAlert} setAlert={setInsertUserAlert} />
             )}

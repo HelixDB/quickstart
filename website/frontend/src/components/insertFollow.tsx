@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MoreHorizontal, Search, CircleX, ChevronDown } from "lucide-react";
+import { MoreHorizontal, Search, CircleX, ChevronDown, MoveRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SuccessComponent, SuccessAlert } from "@/components/success";
 import {
@@ -327,20 +327,20 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
 
     return (
         <>
-            {/* Alert - Fixed Overlay */}
+            {/* Alert */}
             {alert.show && (
                 <SuccessComponent alert={alert} setAlert={setAlert} />
             )}
 
             {/* Insert Follow Section */}
-            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
-                <div className="flex items-center justify-between mb-4">
+            <div className="relative w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-hidden">
+                <div className="flex w-full items-center justify-between mb-3">
                     <h2 className="text-2xl font-semibold">Insert Follow Relationships</h2>
 
                     {/* Selected Relations Summary */}
                     {(selectedFollowed !== null || selectedFollower !== null) && (
-                        <div className="flex items-center gap-3">
-                            {/* Follower Rectangle */}
+                        <div className="absolute top-4 right-4 flex items-center justify-end gap-3 z-10">
+                            {/* Follower */}
                             <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
                                 selectedFollower 
                                     ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800' 
@@ -358,7 +358,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
                                             onClick={() => setSelectedFollower(null)}
                                             className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
                                         >
-                                            <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
+                                            <CircleX className="cursor-pointer h-4 w-4 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200" />
                                         </button>
                                     </div>
                                 ) : (
@@ -370,10 +370,10 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
 
                             {/* Arrow */}
                             <div className="text-gray-400 dark:text-gray-500 font-bold">
-                                →
+                                <MoveRight className="h-4 w-4" />
                             </div>
 
-                            {/* Following Rectangle */}
+                            {/* Following */}
                             <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
                                 selectedFollowed 
                                     ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
@@ -391,7 +391,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
                                             onClick={() => setSelectedFollowed(null)}
                                             className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
                                         >
-                                            <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
+                                            <CircleX className="cursor-pointer h-4 w-4 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200" />
                                         </button>
                                     </div>
                                 ) : (
@@ -450,7 +450,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
                     </div>
                 ) : (
                     <>
-                        {/* Table Container with Scrolling */}
+                        {/* Table Container */}
                         <div className="max-h-[35vh] overflow-y-auto mb-4 rounded-md">
                             <div className="overflow-x-auto">
                                 <Table>
@@ -504,16 +504,16 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end">
                                                                     <DropdownMenuItem
-                                                                        onClick={() => handleSetRelation(user, 'following')}
-                                                                        className={relationType === 'followed' ? 'bg-green-50 dark:bg-green-950' : ''}
-                                                                    >
-                                                                        Set as Followed
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem
                                                                         onClick={() => handleSetRelation(user, 'follower')}
-                                                                        className={relationType === 'follower' ? 'bg-purple-50 dark:bg-purple-950' : ''}
+                                                                        className={'focus:bg-purple-50 dark:focus:bg-purple-950'}
                                                                     >
                                                                         Set as Follower
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handleSetRelation(user, 'following')}
+                                                                        className={'focus:bg-green-50 dark:focus:bg-green-950'}
+                                                                    >
+                                                                        Set as Followed
                                                                     </DropdownMenuItem>
                                                                     {relationType && (
                                                                         <DropdownMenuItem
@@ -535,7 +535,7 @@ export default function InsertFollow({ backend }: { backend: Backend }) {
                             </div>
                         </div>
 
-                        {/* Pagination and info */}
+                        {/* Pagination */}
                         {filteredUsers.length > 0 && (
                             <div className="flex items-center justify-between mb-4">
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
