@@ -34,11 +34,6 @@ interface User {
     updated_at: string;
 }
 
-interface FollowRelation {
-    follower: User | null;
-    followed: User | null;
-}
-
 export default function InsertFollow() {
     const [users, setUsers] = useState<User[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -46,11 +41,6 @@ export default function InsertFollow() {
     const [loading, setLoading] = useState(true);
     const [selectedFollowed, setSelectedFollowed] = useState<User | null>(null);
     const [selectedFollower, setSelectedFollower] = useState<User | null>(null);
-
-    const followRelation: FollowRelation = {
-        follower: selectedFollower || null,
-        followed: selectedFollowed || null
-    };
     
     // Alert state for showing submission results
     const [alert, setAlert] = useState<{

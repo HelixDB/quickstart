@@ -9,6 +9,7 @@ import {
 import InsertUser from "@/components/insertUser";
 import Nav from "@/components/nav";
 import InsertFollow from "@/components/insertFollow";
+import InsertPost from "@/components/insertPost";
 
 export default function Home() {
     const [currentPage, setCurrentPage] = useState("insertUser");
@@ -78,11 +79,16 @@ export default function Home() {
                 {/* Navigation Menu */}
                 <Nav currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
-                {/* Insert User Page */}
-                {currentPage === "insertUser" && <InsertUser />}
+                <div className="w-full h-full">
+                    {/* Insert User Page */}
+                    {currentPage === "insertUser" && <InsertUser />}
 
-                {/* Insert Follow Page */}
-                {currentPage === "insertFollow" && <InsertFollow />}
+                    {/* Insert Follow Page */}
+                    {currentPage === "insertFollow" && <InsertFollow />}
+
+                    {/* Insert Post Page */}
+                    {currentPage === "insertPost" && <InsertPost />}
+                </div>
             </main>
         </div>
     );
