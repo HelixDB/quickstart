@@ -200,7 +200,7 @@ export default function InsertPost() {
             )}
 
             {/* Insert Post Section */}
-            <div className="w-full bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6">
+            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
                 <h2 className="text-2xl font-semibold mb-4">Insert Post</h2>
                 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">

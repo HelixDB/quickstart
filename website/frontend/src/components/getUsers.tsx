@@ -188,7 +188,7 @@ export default function GetUsers() {
     };
 
     return (
-        <div className="w-full bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6">
+        <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Users</h2>
                 
@@ -224,7 +224,7 @@ export default function GetUsers() {
             ) : (
                 <>
                     {/* Table Container with Scrolling */}
-                    <div className="max-h-full overflow-y-auto">
+                    <div className="max-h-[49vh] overflow-y-auto">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader className="sticky top-0 dark:bg-gray-900 z-10">
@@ -265,11 +265,11 @@ export default function GetUsers() {
                     {users.length > 0 && (
                         <div className="flex items-center justify-between mt-4">
                             <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Showing {startIndex + 1} to {Math.min(endIndex, users.length)} of {users.length} users
+                                Showing {Math.min(endIndex, users.length)} of {users.length} users
                             </div>
                             
                             {totalPages > 1 && (
-                                <Pagination>
+                                <Pagination className="w-fit">
                                     <PaginationContent>
                                         <PaginationItem>
                                             <PaginationPrevious 

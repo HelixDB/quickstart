@@ -113,10 +113,10 @@ export default function InsertUser() {
             )}
 
             {/* Insert User Section */}
-            <div className="w-full bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6">
+            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
                 <h2 className="text-2xl font-semibold mb-4">Insert User</h2>
                 
-                <form onSubmit={handleInsertUserSubmit} className="flex flex-col gap-4">
+                <form onSubmit={handleInsertUserSubmit} className="flex flex-col gap-4 h-full">
                     <div className="flex flex-col gap-2">
                         <label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Name

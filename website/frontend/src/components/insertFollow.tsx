@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2Icon, MoreHorizontal, Search, CircleX, CircleMinus, CircleAlert } from "lucide-react";
+import { CheckCircle2Icon, MoreHorizontal, Search, CircleX, CircleMinus, CircleAlert, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
     Alert,
@@ -22,6 +22,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import { getUsers, createFollow } from "@/app/api";
 
@@ -41,6 +50,8 @@ export default function InsertFollow() {
     const [loading, setLoading] = useState(true);
     const [selectedFollowed, setSelectedFollowed] = useState<User | null>(null);
     const [selectedFollower, setSelectedFollower] = useState<User | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     
     // Alert state for showing submission results
     const [alert, setAlert] = useState<{
@@ -92,6 +103,17 @@ export default function InsertFollow() {
             setFilteredUsers(filtered);
         }
     }, [nameFilter, users]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+    // Reset to page 1 when rows per page changes or filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [rowsPerPage, nameFilter]);
 
     // Auto-dismiss alert after 5 seconds
     useEffect(() => {
@@ -188,6 +210,85 @@ export default function InsertFollow() {
         return null;
     };
 
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
+    const renderPaginationItems = () => {
+        const items = [];
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        // Adjust start page if we're near the end
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        // Add first page and ellipsis if needed
+        if (startPage > 1) {
+            items.push(
+                <PaginationItem key={1}>
+                    <PaginationLink 
+                        onClick={() => handlePageChange(1)}
+                        className="cursor-pointer"
+                        isActive={currentPage === 1}
+                    >
+                        1
+                    </PaginationLink>
+                </PaginationItem>
+            );
+            if (startPage > 2) {
+                items.push(
+                    <PaginationItem key="start-ellipsis">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                );
+            }
+        }
+
+        // Add visible page numbers
+        for (let page = startPage; page <= endPage; page++) {
+            items.push(
+                <PaginationItem key={page}>
+                    <PaginationLink
+                        onClick={() => handlePageChange(page)}
+                        className="cursor-pointer"
+                        isActive={currentPage === page}
+                    >
+                        {page}
+                    </PaginationLink>
+                </PaginationItem>
+            );
+        }
+
+        // Add last page and ellipsis if needed
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                items.push(
+                    <PaginationItem key="end-ellipsis">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                );
+            }
+            items.push(
+                <PaginationItem key={totalPages}>
+                    <PaginationLink
+                        onClick={() => handlePageChange(totalPages)}
+                        className="cursor-pointer"
+                        isActive={currentPage === totalPages}
+                    >
+                        {totalPages}
+                    </PaginationLink>
+                </PaginationItem>
+            );
+        }
+
+        return items;
+    };
+
     return (
         <>
             {/* Alert - Fixed Overlay */}
@@ -216,78 +317,81 @@ export default function InsertFollow() {
             )}
 
             {/* Insert Follow Section */}
-            <div className="w-full bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4">Insert Follow Relationships</h2>
+            <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-semibold">Insert Follow Relationships</h2>
 
-                {/* Selected Relations Summary */}
-                {(selectedFollowed !== null || selectedFollower !== null) && (
-                    <div className="mb-4 flex items-center gap-3">
-                        {/* Follower Rectangle */}
-                        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                            selectedFollower 
-                                ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800' 
-                                : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700 border-dashed'
-                        }`}>
-                            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Follower:
-                            </div>
-                            {selectedFollower ? (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-purple-800 dark:text-purple-200">
-                                        {selectedFollower.name}
-                                    </span>
-                                    <button
-                                        onClick={() => setSelectedFollower(null)}
-                                        className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
-                                    >
-                                        <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
-                                    </button>
+                    {/* Selected Relations Summary */}
+                    {(selectedFollowed !== null || selectedFollower !== null) && (
+                        <div className="flex items-center gap-3">
+                            {/* Follower Rectangle */}
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+                                selectedFollower 
+                                    ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800' 
+                                    : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700 border-dashed'
+                            }`}>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Follower:
                                 </div>
-                            ) : (
-                                <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                    Select user
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Arrow */}
-                        <div className="text-gray-400 dark:text-gray-500 font-bold">
-                            →
-                        </div>
-
-                        {/* Following Rectangle */}
-                        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                            selectedFollowed 
-                                ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
-                                : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700 border-dashed'
-                        }`}>
-                            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Following:
-                            </div>
-                            {selectedFollowed ? (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                                        {selectedFollowed.name}
+                                {selectedFollower ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-purple-800 dark:text-purple-200">
+                                            {selectedFollower.name}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedFollower(null)}
+                                            className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
+                                        >
+                                            <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                        Select user
                                     </span>
-                                    <button
-                                        onClick={() => setSelectedFollowed(null)}
-                                        className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
-                                    >
-                                        <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
-                                    </button>
+                                )}
+                            </div>
+
+                            {/* Arrow */}
+                            <div className="text-gray-400 dark:text-gray-500 font-bold">
+                                →
+                            </div>
+
+                            {/* Following Rectangle */}
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+                                selectedFollowed 
+                                    ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
+                                    : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700 border-dashed'
+                            }`}>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Following:
                                 </div>
-                            ) : (
-                                <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                    Select user
-                                </span>
-                            )}
+                                {selectedFollowed ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                                            {selectedFollowed.name}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedFollowed(null)}
+                                            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                                        >
+                                            <CircleX className="cursor-pointer h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                        Select user
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
                 
-                {/* Name Filter */}
-                <div className="mb-4">
-                    <div className="relative">
+                {/* Controls */}
+                <div className="mb-4 flex justify-between items-center mt-1">
+                    {/* Name Filter */}
+                    <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
                             type="text"
@@ -297,6 +401,30 @@ export default function InsertFollow() {
                             className="pl-10"
                         />
                     </div>
+                    
+                    {/* Rows per page selector */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Rows per page:</span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    {rowsPerPage}
+                                    <ChevronDown className="h-4 w-4" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {[1, 5, 10, 15, 20, 50, 100].map((rows) => (
+                                    <DropdownMenuItem
+                                        key={rows}
+                                        onClick={() => setRowsPerPage(rows)}
+                                        className={rowsPerPage === rows ? 'bg-gray-100 dark:bg-gray-800' : ''}
+                                    >
+                                        {rows}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 {/* Users Table */}
@@ -305,87 +433,123 @@ export default function InsertFollow() {
                         <div className="text-gray-500">Loading users...</div>
                     </div>
                 ) : (
-                    <div className="mb-4">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Age</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Created At</TableHead>
-                                    <TableHead>Updated At</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="w-[50px]">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredUsers.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                                            {nameFilter ? 'No users found matching your search.' : 'No users available.'}
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredUsers.map((user) => {
-                                        const relationType = getRelationType(user.id);
-                                        return (
-                                            <TableRow key={user.id}>
-                                                <TableCell className="font-medium">{user.name}</TableCell>
-                                                <TableCell>{user.age}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>{formatDate(user.created_at)}</TableCell>
-                                                <TableCell>{formatDate(user.updated_at)}</TableCell>
-                                                <TableCell>
-                                                    {relationType ? (
-                                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                            relationType === 'followed' 
-                                                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                                : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-                                                        }`}>
-                                                            {relationType === 'followed' ? 'Following' : 'Follower'}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-gray-400 text-xs">-</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button className="cursor-pointer h-8 w-8 p-0 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleSetRelation(user, 'following')}
-                                                                className={relationType === 'followed' ? 'bg-green-50 dark:bg-green-950' : ''}
-                                                            >
-                                                                Set as Followed
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleSetRelation(user, 'follower')}
-                                                                className={relationType === 'follower' ? 'bg-purple-50 dark:bg-purple-950' : ''}
-                                                            >
-                                                                Set as Follower
-                                                            </DropdownMenuItem>
-                                                            {relationType && (
-                                                                <DropdownMenuItem
-                                                                    onClick={() => removeRelation(user.id)}
-                                                                    variant="destructive"
-                                                                >
-                                                                    Remove Selection
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                    <>
+                        {/* Table Container with Scrolling */}
+                        <div className="max-h-[35vh] overflow-y-auto mb-4 rounded-md">
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader className="sticky top-0 z-10">
+                                        <TableRow>
+                                            <TableHead className="min-w-[20px] font-semi-bold">Name</TableHead>
+                                            <TableHead className="min-w-[40px] font-semi-bold">Age</TableHead>
+                                            <TableHead className="min-w-[100px] font-semi-bold">Email</TableHead>
+                                            <TableHead className="font-semi-bold">Created At</TableHead>
+                                            <TableHead className="font-semi-bold">Updated At</TableHead>
+                                            <TableHead className="w-[100px] font-semi-bold">Status</TableHead>
+                                            <TableHead className="w-[50px] font-semi-bold">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {currentUsers.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                                    {nameFilter ? 'No users found matching your search.' : 'No users available.'}
                                                 </TableCell>
                                             </TableRow>
-                                        );
-                                    })
+                                        ) : (
+                                            currentUsers.map((user) => {
+                                                const relationType = getRelationType(user.id);
+                                                return (
+                                                    <TableRow key={user.id}>
+                                                        <TableCell className="font-sm">{user.name.slice(0, 15)}{user.name.length > 15 ? '...' : ''}</TableCell>
+                                                        <TableCell className="font-sm">{user.age}</TableCell>
+                                                        <TableCell className="font-sm">{user.email.slice(0, 15)}{user.email.length > 15 ? '...' : ''}</TableCell>
+                                                        <TableCell className="font-sm">{formatDate(user.created_at)}</TableCell>
+                                                        <TableCell className="font-sm">{formatDate(user.updated_at)}</TableCell>
+                                                        <TableCell>
+                                                            {relationType ? (
+                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                                    relationType === 'followed' 
+                                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                                                }`}>
+                                                                    {relationType === 'followed' ? 'Following' : 'Follower'}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-gray-400 text-xs">-</span>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <button className="cursor-pointer h-8 w-8 p-0 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                                                                        <MoreHorizontal className="h-4 w-4" />
+                                                                    </button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handleSetRelation(user, 'following')}
+                                                                        className={relationType === 'followed' ? 'bg-green-50 dark:bg-green-950' : ''}
+                                                                    >
+                                                                        Set as Followed
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handleSetRelation(user, 'follower')}
+                                                                        className={relationType === 'follower' ? 'bg-purple-50 dark:bg-purple-950' : ''}
+                                                                    >
+                                                                        Set as Follower
+                                                                    </DropdownMenuItem>
+                                                                    {relationType && (
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => removeRelation(user.id)}
+                                                                            variant="destructive"
+                                                                        >
+                                                                            Remove Selection
+                                                                        </DropdownMenuItem>
+                                                                    )}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        {/* Pagination and info */}
+                        {filteredUsers.length > 0 && (
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    Showing {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+                                </div>
+                                
+                                {totalPages > 1 && (
+                                    <Pagination className="w-fit">
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious 
+                                                    onClick={() => handlePageChange(currentPage - 1)}
+                                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                                />
+                                            </PaginationItem>
+                                            
+                                            {renderPaginationItems()}
+                                            
+                                            <PaginationItem>
+                                                <PaginationNext 
+                                                    onClick={() => handlePageChange(currentPage + 1)}
+                                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
                                 )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* Create Follows Button */}

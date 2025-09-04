@@ -12,12 +12,12 @@ export default function Home() {
     const [currentPage, setCurrentPage] = useState("insertUser");
 
     useEffect(() => {
-        // initializePredefinedData();
+        initializePredefinedData();
     }, []);
 
     return (
-        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-            <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start max-w-4xl w-full">
+        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center max-h-screen p-7 pb-15 sm:p-20">
+            <main className="flex flex-col gap-[30px] row-start-2 items-center sm:items-start max-w-4xl w-full">
                 <h1 className="text-4xl font-bold tracking-tight text-center sm:text-left">
                     HelixDB Quickstart
                 </h1>
