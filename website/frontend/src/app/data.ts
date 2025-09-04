@@ -3,6 +3,7 @@
 import { 
     createUser, 
     createPost,
+    getUsers
 } from "./api";
 
 const predefinedUsers = [
@@ -39,19 +40,27 @@ const predefinedPosts = [
 ];
 
 export async function initializePredefinedData() {
-    for (let index = 0; index < predefinedUsers.length; index++) {
-        const user = predefinedUsers[index];
-        const userResult = await createUser({
-            name: user.name,
-            age: parseInt(user.age),
-            email: user.email
-        });
-        const userId = userResult[0]?.user?.id.toString() || '';
-        if (userId.length > 0) {
-            await createPost({
-                content: predefinedPosts[index].content,
-                user_id: userId
+    const result = await getUsers();
+    const users = result[0]?.users || [];
+
+    if (users.length === 0) {
+        console.log("No users found, initializing predefined data");
+        for (let index = 0; index < predefinedUsers.length; index++) {
+            const user = predefinedUsers[index];
+            const userResult = await createUser({
+                name: user.name,
+                age: parseInt(user.age),
+                email: user.email
             });
+            const userId = userResult[0]?.user?.id.toString() || '';
+            if (userId.length > 0) {
+                await createPost({
+                    content: predefinedPosts[index].content,
+                    user_id: userId
+                });
+            }
         }
+    } else {
+        console.log("Users found, skipping initialization");
     }
 }

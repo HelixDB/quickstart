@@ -115,14 +115,17 @@ export default function InsertPost() {
                 content: postContent.trim() 
             });
 
+            console.log("Post created:", postResult);
+
             // Create embedding
             const postId = postResult[0]?.post?.id || postResult.post?.id;
             if (postId) {
-                await createPostEmbedding({
+                const embeddingResult = await createPostEmbedding({
                     post_id: postId,
                     vector: postVector,
                     content: postContent.trim()
                 });
+                console.log("Embedding created:", embeddingResult);
             }
 
             let successMessage = `Post by ${selectedUser?.name} has been created successfully with embedding.`;
@@ -280,13 +283,14 @@ export default function InsertPost() {
                                 <input
                                     key={index}
                                     type="number"
-                                    step="0.1"
+                                    step={0.1}
                                     placeholder={`Float ${index + 1}`}
-                                    value={value.toFixed(1)}
+                                    value={value}
                                     onChange={(e) => {
                                         const newVector = [...postVector];
                                         newVector[index] = parseFloat(e.target.value) || 0.0;
                                         setPostVector(newVector);
+                                        console.log("Post vector updated:", newVector);
                                     }}
                                     className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors outline-none focus:border-ring focus:ring-ring/50 focus:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
                                 />

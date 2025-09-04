@@ -7,12 +7,38 @@ import Nav from "@/components/nav";
 import InsertFollow from "@/components/insertFollow";
 import InsertPost from "@/components/insertPost";
 import GetUsers from "@/components/getUsers";
+import { getUsers } from "@/app/api";
 
 export default function Home() {
     const [currentPage, setCurrentPage] = useState("insertUser");
 
     useEffect(() => {
         initializePredefinedData();
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === '1' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                setCurrentPage("insertUser");
+            }
+            else if (event.key === '2' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                setCurrentPage("insertFollow");
+            }
+            else if (event.key === '3' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                setCurrentPage("insertPost");
+            }
+            else if (event.key === '4' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                setCurrentPage("getUsers");
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
     return (

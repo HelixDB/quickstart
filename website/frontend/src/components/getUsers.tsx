@@ -49,6 +49,7 @@ export default function GetUsers() {
                 setLoading(true);
                 const result = await getUsers();
                 setUsers(result[0]?.users || []);
+                console.log("Users fetched:", users.length);
             } catch (error) {
                 console.error("Error fetching users:", error);
             } finally {
@@ -186,6 +187,26 @@ export default function GetUsers() {
 
         return items;
     };
+
+    useEffect(() => {
+        // If .  is pressed, go to next page, if , is pressed, go to previous page
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === '.') {
+                if (currentPage < totalPages) {
+                    handlePageChange(currentPage + 1);
+                }
+            }
+            else if (event.key === ',') {
+                if (currentPage > 1) {
+                    handlePageChange(currentPage - 1);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [currentPage, totalPages]);
 
     return (
         <div className="w-full h-[65vh] bg-black/[.05] dark:bg-white/[.06] rounded-lg p-6 overflow-y-auto">

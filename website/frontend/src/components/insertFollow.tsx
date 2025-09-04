@@ -73,7 +73,6 @@ export default function InsertFollow() {
                 setLoading(true);
                 const result = await getUsers();
                 const usersData = result[0]?.users || [];
-                console.log(usersData);
                 setUsers(usersData);
                 setFilteredUsers(usersData);
             } catch (error) {
@@ -170,6 +169,8 @@ export default function InsertFollow() {
 
         try {
             const result = await createFollow({ follower_id: selectedFollower?.id, followed_id: selectedFollowed?.id });
+
+            console.log("Follow relationship created:", result);
 
             setAlert({
                 show: true,
@@ -289,6 +290,26 @@ export default function InsertFollow() {
         return items;
     };
 
+    useEffect(() => {
+        // If .  is pressed, go to next page, if , is pressed, go to previous page
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === '.') {
+                if (currentPage < totalPages) {
+                    handlePageChange(currentPage + 1);
+                }
+            }
+            else if (event.key === ',') {
+                if (currentPage > 1) {
+                    handlePageChange(currentPage - 1);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [currentPage, totalPages]);
+
     return (
         <>
             {/* Alert - Fixed Overlay */}
@@ -395,7 +416,7 @@ export default function InsertFollow() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
                             type="text"
-                            placeholder="Filter users by name..."
+                            placeholder="Filter users by name"
                             value={nameFilter}
                             onChange={(e) => setNameFilter(e.target.value)}
                             className="pl-10"

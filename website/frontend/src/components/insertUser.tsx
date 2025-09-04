@@ -124,7 +124,7 @@ export default function InsertUser() {
                         <Input
                             id="name"
                             type="text"
-                            placeholder="Enter user name"
+                            placeholder="Lebron James"
                             value={insertUserForm.name}
                             onChange={(e) => handleInsertUserInputChange("name", e.target.value)}
                             required
@@ -138,7 +138,7 @@ export default function InsertUser() {
                         <Input
                             id="age"
                             type="number"
-                            placeholder="Enter user age"
+                            placeholder="38"
                             value={insertUserForm.age}
                             onChange={(e) => handleInsertUserInputChange("age", e.target.value)}
                             min="1"
@@ -154,7 +154,7 @@ export default function InsertUser() {
                         <Input
                             id="email"
                             type="email"
-                            placeholder="Enter user email"
+                            placeholder="lebron.james@gmail.com"
                             value={insertUserForm.email}
                             onChange={(e) => handleInsertUserInputChange("email", e.target.value)}
                             required

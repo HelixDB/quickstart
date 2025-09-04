@@ -27,6 +27,12 @@ async def create_post(request: Request):
     response = client.query("createPost", data)
     return response
 
+@app.post("/createPostEmbedding")
+async def create_post_embedding(request: Request):
+    data = await request.json()
+    response = client.query("createPostEmbedding", data)
+    return response
+
 @app.post("/getUsers")
 async def get_users():
     response = client.query("getUsers", {})
@@ -59,6 +65,12 @@ async def get_following(request: Request):
 async def get_user_posts(request: Request):
     data = await request.json()
     response = client.query("getUserPosts", data)
+    return response
+
+@app.post("/searchPostEmbeddings")
+async def search_post_embeddings(request: Request):
+    data = await request.json()
+    response = client.query("searchPostEmbeddings", data)
     return response
 
 @app.get("/health")
