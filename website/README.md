@@ -38,3 +38,8 @@ python main.py
 ```bash
 cargo run
 ```
+
+### TypeScript
+
+The TypeScript backend is built into the frontend. There is a toggle button to switch between the API and the TypeScript SDK.
+You can find the TypeScript backend in the [ts-sdk.ts](/website/frontend/src/app/ts-sdk.ts) file.
