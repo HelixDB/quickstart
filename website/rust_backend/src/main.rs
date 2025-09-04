@@ -86,7 +86,6 @@ async fn main() {
         .or(get_posts_by_user)
         .or(get_followers)
         .or(get_following)
-        .or(get_user_posts)
         .or(search_post_embeddings)
         .or(health);
 
@@ -156,7 +155,8 @@ async fn create_post_embedding_handler(data: HashMap<String, Value>, client: Arc
 }
 
 async fn get_users_handler(client: Arc<HelixDB>) -> Result<impl Reply, Infallible> {
-    match client.query("getUsers", &()).await {
+    let data: HashMap<String, Value> = HashMap::new();
+    match client.query("getUsers", &data).await {
         Ok(response) => {
             let response_value: Value = response;
             let wrapped_response = vec![response_value];
@@ -170,7 +170,8 @@ async fn get_users_handler(client: Arc<HelixDB>) -> Result<impl Reply, Infallibl
 }
 
 async fn get_posts_handler(client: Arc<HelixDB>) -> Result<impl Reply, Infallible> {
-    match client.query("getPosts", &()).await {
+    let data: HashMap<String, Value> = HashMap::new();
+    match client.query("getPosts", &data).await {
         Ok(response) => {
             let response_value: Value = response;
             let wrapped_response = vec![response_value];
@@ -187,7 +188,8 @@ async fn get_posts_by_user_handler(data: HashMap<String, Value>, client: Arc<Hel
     match client.query("getPostsByUser", &data).await {
         Ok(response) => {
             let response_value: Value = response;
-            Ok(warp::reply::json(&response_value))
+            let wrapped_response = vec![response_value];
+            Ok(warp::reply::json(&wrapped_response))
         }
         Err(err) => {
             let error_response = serde_json::json!({"error": err.to_string()});
@@ -200,7 +202,8 @@ async fn get_followers_handler(data: HashMap<String, Value>, client: Arc<HelixDB
     match client.query("getFollowers", &data).await {
         Ok(response) => {
             let response_value: Value = response;
-            Ok(warp::reply::json(&response_value))
+            let wrapped_response = vec![response_value];
+            Ok(warp::reply::json(&wrapped_response))
         }
         Err(err) => {
             let error_response = serde_json::json!({"error": err.to_string()});
@@ -213,7 +216,8 @@ async fn get_following_handler(data: HashMap<String, Value>, client: Arc<HelixDB
     match client.query("getFollowing", &data).await {
         Ok(response) => {
             let response_value: Value = response;
-            Ok(warp::reply::json(&response_value))
+            let wrapped_response = vec![response_value];
+            Ok(warp::reply::json(&wrapped_response))
         }
         Err(err) => {
             let error_response = serde_json::json!({"error": err.to_string()});
@@ -226,7 +230,8 @@ async fn search_post_embeddings_handler(data: HashMap<String, Value>, client: Ar
     match client.query("searchPostEmbeddings", &data).await {
         Ok(response) => {
             let response_value: Value = response;
-            Ok(warp::reply::json(&response_value))
+            let wrapped_response = vec![response_value];
+            Ok(warp::reply::json(&wrapped_response))
         }
         Err(err) => {
             let error_response = serde_json::json!({"error": err.to_string()});
