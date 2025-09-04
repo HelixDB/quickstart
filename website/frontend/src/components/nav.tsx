@@ -48,7 +48,7 @@ export default function Nav({ currentPage, setCurrentPage }: { currentPage: stri
                             ? "bg-foreground text-white hover:bg-foreground/80 hover:text-white" 
                             : "bg-foreground/10 hover:bg-foreground/5 focus:bg-foreground/5"
                     }`}>
-                        <div className="cursor-pointer" onClick={() => setCurrentPage("getUsers")}>View Users</div>
+                        <div className="cursor-pointer" onClick={() => setCurrentPage("getUsers")}>Users</div>
                     </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
@@ -57,7 +57,16 @@ export default function Nav({ currentPage, setCurrentPage }: { currentPage: stri
                             ? "bg-foreground text-white hover:bg-foreground/80 hover:text-white" 
                             : "bg-foreground/10 hover:bg-foreground/5 focus:bg-foreground/5"
                     }`}>
-                        <div className="cursor-pointer" onClick={() => setCurrentPage("getPosts")}>View Posts</div>
+                        <div className="cursor-pointer" onClick={() => setCurrentPage("getPosts")}>Posts</div>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <NavigationMenuLink className={`group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50 ${
+                        currentPage === "getUserPosts" 
+                            ? "bg-foreground text-white hover:bg-foreground/80 hover:text-white" 
+                            : "bg-foreground/10 hover:bg-foreground/5 focus:bg-foreground/5"
+                    }`}>
+                        <div className="cursor-pointer" onClick={() => setCurrentPage("getUserPosts")}>User Posts</div>
                     </NavigationMenuLink>
                 </NavigationMenuItem>
             </NavigationMenuList>
