@@ -3,7 +3,8 @@
 import { 
     createUser, 
     createPost,
-    getUsers
+    getUsers,
+    createPostEmbedding
 } from "./api";
 
 const predefinedUsers = [
@@ -54,10 +55,18 @@ export async function initializePredefinedData() {
             });
             const userId = userResult[0]?.user?.id.toString() || '';
             if (userId.length > 0) {
-                await createPost({
+                const postResult = await createPost({
                     content: predefinedPosts[index].content,
                     user_id: userId
                 });
+                const postId = postResult[0]?.post?.id;
+                if (postId) {
+                    await createPostEmbedding({
+                        post_id: postId,
+                        vector: predefinedPosts[index].vector,
+                        content: predefinedPosts[index].content
+                    });
+                }
             }
         }
     } else {

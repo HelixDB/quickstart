@@ -22,7 +22,7 @@ You can find the instructions on how to run each example in their respective REA
 
 ## Website Deployment Demo
 
-The website deployment demo is located in the [website](/website) directory.
+The website deployment demo is located in the [website](/website_demo) directory.
 It is a simple website that demonstrates the use of HelixDB with various SDKs.
 The website has a Next.js frontend and various backend options built from each SDK.
-You can find the instructions on how to run the website in the [website/README.md](website/README.md) file.
+You can find the instructions on how to run the website in the [README](website_demo/README.md) file.
