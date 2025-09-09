@@ -33,9 +33,8 @@ helix install
 ```
 
 ### Deploy a HelixDB Instance
-
+Go into the `helixdb-cfg` directory and deploy the instance using the following command
 ```bash
-cd helixdb-cfg
 helix deploy
 ```
 
