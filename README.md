@@ -7,9 +7,9 @@ It provides a simple way to get started with HelixDB with various SDKs and a dep
 
 ## Helix Schema and Queries
 
-The Helix schema and queries are defined in the [helixdb-cfg](/helixdb-cfg) directory.
-The schema is defined in the [schema.hx](helixdb-cfg/schema.hx) file.
-The queries are defined in the [queries.hx](helixdb-cfg/queries.hx) file.
+The Helix schema and queries are defined in the [db](/db) directory.
+The schema is defined in the [schema.hx](db/schema.hx) file.
+The queries are defined in the [queries.hx](db/queries.hx) file.
 
 We will be using the same schema and queries for all the quickstart examples and the website demo.
 You will only need one HelixDB instance running locally to run all the quickstart examples and the website demo.
