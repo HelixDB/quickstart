@@ -14,7 +14,7 @@ curl -sSL https://install.helix-db.com | bash
 ```
 
 ## Deploying a HelixDB Instance
-Go into the `db` directory and deploy the instance using the following command
+Deploy the instance using the following command
 ```bash
 helix push dev
 ```
