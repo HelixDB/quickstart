@@ -8,34 +8,14 @@ A simple Go application demonstrating HelixDB usage.
 
 ## Installing HelixDB
 
-### Install the HelixCLI using the following command
-
 ```bash
 curl -sSL https://install.helix-db.com | bash
 ```
-### Add Helix to your PATH
 
-For Unix (macOS, Linux)
+## Deploying a HelixDB Instance
+Deploy the instance using the following command
 ```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
-source ~/.zshrc
-```
-
-For Bash (Windows)
-```bash Bash (Windows)
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-source ~/.bashrc
-```
-### Install the Helix container using the following command
-
-```bash
-helix install
-```
-
-### Deploy a HelixDB Instance
-Go into the `helixdb-cfg` directory and deploy the instance using the following command
-```bash
-helix deploy
+helix push dev
 ```
 
 ## Usage
